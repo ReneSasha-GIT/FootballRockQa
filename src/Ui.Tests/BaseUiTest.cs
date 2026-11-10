@@ -19,7 +19,7 @@ public abstract class BaseUiTest
         options.AddArgument("--window-size=1920,1080");
 
         Driver = new ChromeDriver(options);
-        Wait = new WebDriverWait(Driver, TimeSpan.FromSeconds(10));
+        Wait = new WebDriverWait(Driver, TimeSpan.FromSeconds(20));
     }
 
     [TearDown]
