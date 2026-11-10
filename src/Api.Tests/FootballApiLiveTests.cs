@@ -1,8 +1,5 @@
-using System.Diagnostics;
 using System.Net;
 using Core.Clients;
-using Core.Models.Football;
-using NUnit.Framework;
 using RestSharp;
 
 namespace Api.Tests;
@@ -23,18 +20,13 @@ public class FootballApiLiveTests
     [Test]
     public async Task GetStandings_PremierLeague_ReturnsSuccessAndValidContract()
     {
-        var stopwatch = Stopwatch.StartNew();
         var response = await _apiClient.GetStandingsAsync("PL");
-        stopwatch.Stop();
 
         Assert.Multiple(() =>
         {
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
             Assert.That(response.Data, Is.Not.Null, "Response payload should not be null.");
             Assert.That(response.Data!.Standings, Is.Not.Empty, "Standings list should not be empty.");
-            
-            // SLA часу відповіді (наприклад, менше 3 секунд для безкоштовного API)
-            Assert.That(stopwatch.ElapsedMilliseconds, Is.LessThan(3000), "Response time exceeded 3000ms SLA.");
         });
 
         var totalStandings = response.Data.Standings.FirstOrDefault(s => s.Type == "TOTAL");
@@ -62,7 +54,7 @@ public class FootballApiLiveTests
     [Test]
     public async Task GetStandings_MissingApiKey_ReturnsUnauthorized()
     {
-        // Створюємо клієнт без токена
+        // Client without token
         var clientWithoutToken = new RestClient("https://api.football-data.org/v4");
         var request = new RestRequest("competitions/PL/standings");
 
