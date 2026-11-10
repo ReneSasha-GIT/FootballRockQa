@@ -1,9 +1,11 @@
 using Core.Helpers;
 using Core.Models.Football;
+using Allure.NUnit;
 
 namespace Api.Tests;
 
 [TestFixture]
+[AllureNUnit]
 [Category("Api")]
 [Category("Offline")]
 public class StandingsApiBusinessRulesTests

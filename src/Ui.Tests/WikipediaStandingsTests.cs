@@ -1,9 +1,11 @@
 using NUnit.Framework;
 using Ui.Tests.PageObjects;
+using Allure.NUnit;
 
 namespace Ui.Tests;
 
 [TestFixture]
+[AllureNUnit]
 public class WikipediaStandingsTests : BaseUiTest
 {
     private WikipediaStandingsPage _page = null!;

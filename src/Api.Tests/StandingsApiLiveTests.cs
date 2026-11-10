@@ -1,10 +1,12 @@
 using System.Net;
+using Allure.NUnit;
 using Core.Clients;
 using RestSharp;
 
 namespace Api.Tests;
 
 [TestFixture]
+[AllureNUnit]
 [Category("Api")]
 [Category("Live")]
 public class StandingsApiLiveTests
