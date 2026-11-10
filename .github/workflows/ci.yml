@@ -46,6 +46,7 @@ jobs:
         with:
           name: allure-results-api
           path: "**/allure-results/*"
+          if-no-files-found: ignore
           retention-days: 1
 
   ui-tests:
@@ -81,6 +82,7 @@ jobs:
           path: |
             **/allure-results/*
             **/Screenshots/*
+          if-no-files-found: ignore
           retention-days: 1
 
   report:
@@ -93,14 +95,19 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Prepare allure results directory
+        run: mkdir -p all-allure-results
+
       - name: Download API Results
         uses: actions/download-artifact@v4
+        continue-on-error: true
         with:
           name: allure-results-api
           path: all-allure-results
 
       - name: Download UI Results
         uses: actions/download-artifact@v4
+        continue-on-error: true
         with:
           name: allure-results-ui
           path: all-allure-results
@@ -131,3 +138,4 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_branch: gh-pages
           publish_dir: allure-history
+          keep_files: true
