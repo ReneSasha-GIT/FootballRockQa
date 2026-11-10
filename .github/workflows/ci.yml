@@ -2,9 +2,9 @@ name: Test Automation CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "master" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "main", "master" ]
   workflow_dispatch:
 
 permissions:
@@ -45,8 +45,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: allure-results-api
-          path: "**/allure-results/*"
-          if-no-files-found: ignore
+          path: "**/allure-results/**"
+          if-no-files-found: warn
           retention-days: 1
 
   ui-tests:
@@ -80,9 +80,9 @@ jobs:
         with:
           name: allure-results-ui
           path: |
-            **/allure-results/*
-            **/Screenshots/*
-          if-no-files-found: ignore
+            **/allure-results/**
+            **/Screenshots/**
+          if-no-files-found: warn
           retention-days: 1
 
   report:
@@ -95,22 +95,18 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Prepare allure results directory
-        run: mkdir -p all-allure-results
-
-      - name: Download API Results
+      - name: Download all test artifacts
         uses: actions/download-artifact@v4
-        continue-on-error: true
         with:
-          name: allure-results-api
-          path: all-allure-results
+          path: raw-artifacts
 
-      - name: Download UI Results
-        uses: actions/download-artifact@v4
-        continue-on-error: true
-        with:
-          name: allure-results-ui
-          path: all-allure-results
+      - name: Consolidate Allure Results
+        run: |
+          mkdir -p all-allure-results
+          find raw-artifacts -name "*-result.json" -exec cp {} all-allure-results/ \;
+          find raw-artifacts -name "*-container.json" -exec cp {} all-allure-results/ \;
+          find raw-artifacts -name "*-attachment.*" -exec cp {} all-allure-results/ \;
+          echo "Discovered Allure files count: $(ls -1 all-allure-results | wc -l)"
 
       - name: Get Allure History
         uses: actions/checkout@v4
@@ -138,4 +134,4 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_branch: gh-pages
           publish_dir: allure-history
-          keep_files: true
+          keep_files: false
