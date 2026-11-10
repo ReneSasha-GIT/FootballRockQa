@@ -1,0 +1,141 @@
+name: Test Automation CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  api-tests:
+    name: Run API Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build solution
+        run: dotnet build --no-restore --configuration Release
+
+      - name: Run API Tests
+        env:
+          FootballData__ApiKey: ${{ secrets.FOOTBALL_DATA_API_KEY }}
+        run: >
+          dotnet test --no-build --configuration Release
+          --filter "TestCategory=Api"
+          --logger "trx;LogFileName=api-test-results.trx"
+
+      - name: Upload API Allure Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-results-api
+          path: "**/allure-results/*"
+          if-no-files-found: ignore
+          retention-days: 1
+
+  ui-tests:
+    name: Run UI Tests (Headless Chrome)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build solution
+        run: dotnet build --no-restore --configuration Release
+
+      - name: Run UI Tests
+        run: >
+          dotnet test --no-build --configuration Release
+          --filter "TestCategory=Ui"
+          --logger "trx;LogFileName=ui-test-results.trx"
+
+      - name: Upload UI Allure Results & Screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-results-ui
+          path: |
+            **/allure-results/*
+            **/Screenshots/*
+          if-no-files-found: ignore
+          retention-days: 1
+
+  report:
+    name: Generate & Publish Allure Report
+    needs: [api-tests, ui-tests]
+    if: always()
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Prepare allure results directory
+        run: mkdir -p all-allure-results
+
+      - name: Download API Results
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: allure-results-api
+          path: all-allure-results
+
+      - name: Download UI Results
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: allure-results-ui
+          path: all-allure-results
+
+      - name: Get Allure History
+        uses: actions/checkout@v4
+        if: always()
+        continue-on-error: true
+        with:
+          ref: gh-pages
+          path: gh-pages
+
+      - name: Build Allure Report
+        uses: simple-elf/allure-report-action@master
+        if: always()
+        id: allure-report
+        with:
+          allure_results: all-allure-results
+          gh_pages: gh-pages
+          allure_report: allure-report
+          allure_history: allure-history
+          keep_reports: 20
+
+      - name: Deploy Allure Report to GitHub Pages
+        if: always()
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: allure-history
+          keep_files: true
