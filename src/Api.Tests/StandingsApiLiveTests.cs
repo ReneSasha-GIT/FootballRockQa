@@ -7,7 +7,7 @@ namespace Api.Tests;
 [TestFixture]
 [Category("Api")]
 [Category("Live")]
-public class FootballApiLiveTests
+public class StandingsApiLiveTests
 {
     private FootballApiClient _apiClient = null!;
 

@@ -1,13 +1,12 @@
 using Core.Helpers;
 using Core.Models.Football;
-using NUnit.Framework;
 
 namespace Api.Tests;
 
 [TestFixture]
 [Category("Api")]
 [Category("Offline")]
-public class StandingsBusinessRulesTests
+public class StandingsApiBusinessRulesTests
 {
     private static StandingsResponse _cachedStandings = null!;
     private static List<TableItem> _tableRows = null!;
@@ -92,7 +91,7 @@ public class StandingsBusinessRulesTests
     [Test]
     public void StandingsTable_ContainsExpectedNumberOfTeams()
     {
-        // Premier League містить 20 команд
+        // Premier League contains 20 teams
         Assert.That(_tableRows, Has.Count.EqualTo(20));
     }
 }
