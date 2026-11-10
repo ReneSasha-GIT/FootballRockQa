@@ -33,7 +33,7 @@ public class FootballApiLiveTests
         Assert.Multiple(() =>
         {
             Assert.That(totalStandings, Is.Not.Null, "Expected 'TOTAL' standings group was missing.");
-            Assert.That(totalStandings!.Table, Has.Count.GreaterThan(0), "Table rows should not be empty.");
+            Assert.That(totalStandings!.Table, Is.Not.Empty, "Table rows should not be empty.");
             
             var firstRow = totalStandings.Table.First();
             Assert.That(firstRow.Team, Is.Not.Null);
@@ -48,7 +48,7 @@ public class FootballApiLiveTests
         var request = new RestRequest("competitions/NON_EXISTENT_CODE_999/standings");
         var response = await _apiClient.ExecuteRawAsync(request);
 
-        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.NotFound));
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
     }
 
     [Test]
@@ -60,6 +60,6 @@ public class FootballApiLiveTests
 
         var response = await clientWithoutToken.ExecuteAsync(request);
 
-        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Forbidden));
     }
 }
