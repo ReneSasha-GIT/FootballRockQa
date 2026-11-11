@@ -1,14 +1,3 @@
-# FootballRockQa
-
-# Football UI & API Automation Tests
-
-![CI Status](https://github.com/ReneSasha-GIT/FootballRockQa/actions/workflows/ci.yml/badge.svg)
-
-## About the project
-
-Automation testing framework using C#, Selenium and NUnit.
-
-
 # FootballRockQa — Automated Testing Framework
 
 [![Test Automation CI](https://github.com/Renesasha-GIT/FootballRockQa/actions/workflows/ci.yml/badge.svg)](https://github.com/Renesasha-GIT/FootballRockQa/actions/workflows/ci.yml)
@@ -59,3 +48,37 @@ FootballRockQa/
 │       ├── WikipediaStandingsTests.cs        # UI Smoke & contract checks
 │       └── StandingsCrossValidationTests.cs  # Cross-layer reconciliation (UI vs API)
 └── README.md
+
+
+## 🧪 Test Coverage Breakdown
+
+### 1. API Testing (`Api.Tests`)
+* **Contract & HTTP Verifications:**
+  * Status code validations (`200 OK`, `400 Bad Request` for unknown competitions, `403 Forbidden` for unauthorized requests).
+  * Payload structural integrity checks (presence of required fields, non-empty arrays, ID ranges).
+* **Data-Driven Business Logic (`TestCaseSource`):**
+  * **Points Calculation:** Points strictly match $(Won \times 3) + Draw$.
+  * **Match Balance:** Played games count equals $Won + Draw + Lost$.
+  * **Goal Difference:** Goal difference equals $GoalsFor - GoalsAgainst$.
+  * **Standings Integrity:** Positions are sequential ($1 \dots 20$) and sorted strictly by points in descending order.
+* **Resilience & Rate-Limiting Strategy:**
+  * Uses cached JSON fixtures (`standings_pl.json`) for offline execution, preserving 3rd-party API rate quotas during CI runs.
+
+### 2. UI Automation (`Ui.Tests`)
+* **Page Object Model (POM):**
+  * Encapsulates selectors, state transitions, and wait mechanisms (`WebDriverWait`) for the Wikipedia season table.
+* **Resilient Table Parsing (`TableHelper`):**
+  * Parses complex dynamic wikitables into typed C# DTOs.
+  * Cleans Wikipedia citation footnotes (e.g., `[a]`, `[b]`) using regex.
+  * Normalizes Unicode minus characters (`−` vs `-`) for robust numeric parsing.
+* **Diagnostics & CI Reliability:**
+  * Automatic screenshot capture on test failure integrated directly into Allure test attachments.
+  * Headless Chrome configuration tuned for containerized Linux runners (`--headless=new`, `--no-sandbox`, `--disable-dev-shm-usage`).
+
+### 3. Cross-Layer Data Verification (UI vs API)
+* **Cross-Source Consistency:**
+  * Reconciles data scraped live from Wikipedia against the official Football-Data.org API.
+* **Entity Normalization (`TeamNameNormalizer`):**
+  * Resolves naming discrepancies between data providers (e.g., `Brighton & Hove Albion FC` vs `Brighton & Hove Albion`, `Tottenham Hotspur` vs `Tottenham`).
+* **Assertion Diffing:**
+  * Validates that teams, points, played games, and goal differences correlate 1:1 across layers, providing clear mismatch logs on failure.
