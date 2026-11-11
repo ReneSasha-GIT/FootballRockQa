@@ -16,9 +16,9 @@ Multi-tier automated test solution covering **API contracts & business logic**, 
 Allure generates a consolidated dashboard across both API and UI test runs on every commit:
 👉 **[View Live Allure Report on GitHub Pages](https://renesasha-git.github.io/FootballRockQa/)**
 
-* 76 test cases with 100% pass rate
-* History and trend tracking across builds
-* Automated screenshot capture on UI failure
+- 76 test cases with 100% pass rate
+- History and trend tracking across builds
+- Automated screenshot capture on UI failure
 
 ---
 
@@ -50,36 +50,99 @@ FootballRockQa/
 └── README.md
 ```
 
+---
 
 ## 🧪 Test Coverage Breakdown
 
 ### 1. API Testing (`Api.Tests`)
-* **Contract & HTTP Verifications:**
-  * Status code validations (`200 OK`, `400 Bad Request` for unknown competitions, `403 Forbidden` for unauthorized requests).
-  * Payload structural integrity checks (presence of required fields, non-empty arrays, ID ranges).
-* **Data-Driven Business Logic (`TestCaseSource`):**
-  * **Points Calculation:** Points strictly match $(Won \times 3) + Draw$.
-  * **Match Balance:** Played games count equals $Won + Draw + Lost$.
-  * **Goal Difference:** Goal difference equals $GoalsFor - GoalsAgainst$.
-  * **Standings Integrity:** Positions are sequential ($1 \dots 20$) and sorted strictly by points in descending order.
-* **Resilience & Rate-Limiting Strategy:**
-  * Uses cached JSON fixtures (`standings_pl.json`) for offline execution, preserving 3rd-party API rate quotas during CI runs.
+- **Contract & HTTP Verifications:**
+  - Status code validations (`200 OK`, `400 Bad Request` for unknown competitions, `403 Forbidden` for unauthorized requests).
+  - Payload structural integrity checks (presence of required fields, non-empty arrays, ID ranges).
+- **Data-Driven Business Logic (`TestCaseSource`):**
+  - **Points Calculation:** Points strictly match $(Won \times 3) + Draw$.
+  - **Match Balance:** Played games count equals $Won + Draw + Lost$.
+  - **Goal Difference:** Goal difference equals $GoalsFor - GoalsAgainst$.
+  - **Standings Integrity:** Positions are sequential ($1 \dots 20$) and sorted strictly by points in descending order.
+- **Resilience & Rate-Limiting Strategy:**
+  - Uses cached JSON fixtures (`standings_pl.json`) for offline execution, preserving 3rd-party API rate quotas during CI runs.
 
 ### 2. UI Automation (`Ui.Tests`)
-* **Page Object Model (POM):**
-  * Encapsulates selectors, state transitions, and wait mechanisms (`WebDriverWait`) for the Wikipedia season table.
-* **Resilient Table Parsing (`TableHelper`):**
-  * Parses complex dynamic wikitables into typed C# DTOs.
-  * Cleans Wikipedia citation footnotes (e.g., `[a]`, `[b]`) using regex.
-  * Normalizes Unicode minus characters (`−` vs `-`) for robust numeric parsing.
-* **Diagnostics & CI Reliability:**
-  * Automatic screenshot capture on test failure integrated directly into Allure test attachments.
-  * Headless Chrome configuration tuned for containerized Linux runners (`--headless=new`, `--no-sandbox`, `--disable-dev-shm-usage`).
+- **Page Object Model (POM):**
+  - Encapsulates selectors, state transitions, and wait mechanisms (`WebDriverWait`) for the Wikipedia season table.
+- **Resilient Table Parsing (`TableHelper`):**
+  - Parses complex dynamic wikitables into typed C# DTOs.
+  - Cleans Wikipedia citation footnotes (e.g., `[a]`, `[b]`) using regex.
+  - Normalizes Unicode minus characters (`−` vs `-`) for robust numeric parsing.
+- **Diagnostics & CI Reliability:**
+  - Automatic screenshot capture on test failure integrated directly into Allure test attachments.
+  - Headless Chrome configuration tuned for containerized Linux runners (`--headless=new`, `--no-sandbox`, `--disable-dev-shm-usage`).
 
 ### 3. Cross-Layer Data Verification (UI vs API)
-* **Cross-Source Consistency:**
-  * Reconciles data scraped live from Wikipedia against the official Football-Data.org API.
-* **Entity Normalization (`TeamNameNormalizer`):**
-  * Resolves naming discrepancies between data providers (e.g., `Brighton & Hove Albion FC` vs `Brighton & Hove Albion`, `Tottenham Hotspur` vs `Tottenham`).
-* **Assertion Diffing:**
-  * Validates that teams, points, played games, and goal differences correlate 1:1 across layers, providing clear mismatch logs on failure.
+- **Cross-Source Consistency:**
+  - Reconciles data scraped live from Wikipedia against the official Football-Data.org API.
+- **Entity Normalization (`TeamNameNormalizer`):**
+  - Resolves naming discrepancies between data providers (e.g., `Brighton & Hove Albion FC` vs `Brighton & Hove Albion`, `Tottenham Hotspur` vs `Tottenham`).
+- **Assertion Diffing:**
+  - Validates that teams, points, played games, and goal differences correlate 1:1 across layers, providing clear mismatch logs on failure.
+
+---
+
+## 🐛 Handled Quirks & Real-World Challenges
+
+1. **Entity Naming Discrepancies:** Wikipedia lists teams as `Brighton & Hove Albion` or `Tottenham Hotspur`, whereas the API provides `Brighton & Hove Albion FC` or `Tottenham Hotspur FC`. Reconciled using regex normalization and an alias dictionary in `TeamNameNormalizer`.
+2. **Unicode Minus Parsing:** Wikipedia formats negative goal differences with the typographical Unicode minus character `−` (`\u2212`) rather than standard ASCII hyphen-minus `-` (`\u002D`). Sanitized in `TableHelper`.
+3. **Citation Footnotes:** Wikipedia attaches qualification notes to club names (e.g., `Arsenal[a]`). Stripped via regular expressions before entity matching.
+4. **API Rate Limiting:** Offline regression suites rely on local JSON fixtures, avoiding free tier quota exhaustion during pull request validation.
+
+---
+
+## ⚙️ Tech Stack & Tooling
+
+- **Runtime:** .NET 10.0
+- **Language:** C#
+- **Test Framework:** NUnit 3 + Allure.NUnit
+- **UI Driver:** Selenium WebDriver (`--headless=new`)
+- **HTTP Client:** RestSharp
+- **CI/CD & Reporting:** GitHub Actions + GitHub Pages (Allure Report)
+
+---
+
+## 🚀 Getting Started Locally
+
+### Prerequisites
+- [.NET 10 SDK](https://dotnet.microsoft.com/download)
+- Google Chrome installed
+
+### Setup & Execution
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/Renesasha-GIT/FootballRockQa.git
+   cd FootballRockQa
+   ```
+
+2. **Configure API Key (optional for offline, required for live tests):**
+   - **Linux/macOS:**
+     ```bash
+     export FootballData__ApiKey="YOUR_KEY"
+     ```
+   - **Windows (PowerShell):**
+     ```powershell
+     $env:FootballData__ApiKey="YOUR_KEY"
+     ```
+
+3. **Run All Tests:**
+   ```bash
+   dotnet test
+   ```
+
+4. **Run Filtered Test Categories:**
+   ```bash
+   # Run only API tests
+   dotnet test --filter "TestCategory=Api"
+
+   # Run only UI tests
+   dotnet test --filter "TestCategory=Ui"
+
+   # Run Cross-layer comparison
+   dotnet test --filter "TestCategory=CrossCheck"
+   ```
