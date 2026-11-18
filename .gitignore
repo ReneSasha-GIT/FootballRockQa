@@ -428,3 +428,5 @@ FodyWeavers.xsd
 #*.lscache
 
 appsettings.json
+
+graphify-out/
